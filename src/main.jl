@@ -1,4 +1,13 @@
 """
+    cued_recall(model::MHG, threshold::Float64)
+
+Simple cued recall task. The `model` object is of type `MHG` and reads different parameters
+from that object. The `threshold` parameter controls the recall mechanism by setting a lower
+limit to activation values.
+
+# Arguments
+  - `model`: Data structure of type `MHG`.
+  - `threshold`: Numerical value indicating the threshold of the recall mechanism.
 
 """
 function cued_recall(model, threshold::Float64)
@@ -21,6 +30,16 @@ function cued_recall(model, threshold::Float64)
 end
 
 """
+    recall_trial(probe, cues, targets, threshold, answer)
+
+Single cued-recall trial. Subprocess under the `cued_recall()` method.
+
+# Arguments
+  - `probe`: Vector for the probe item into memory. The first half of the vector is the true cue vector (degraded, if specified) while the second half is a vector of zeros.
+  - `cues`: Matrix of cue-word representations being held in memory.
+  - `targets`: Matrix of target-word representations being held in memory.
+  - `threshold`: Float value for the threshold parameter for the cued recall procedure.
+  - `answer`: Index of the correct answer. Necessary for determining the outcome of the memory test.
 
 """
 function recall_trial(probe, cues, targets, threshold, answer)  
