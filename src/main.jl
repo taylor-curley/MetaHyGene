@@ -1,0 +1,35 @@
+"""
+
+"""
+function cued_recall(model, threshold::Float64)
+    out_data = DataFrame(Subject = Int64[],
+                         Trial = Int64[],
+                         EchoInt = Float64[],
+                         Target = Int64[],
+                         RESP = Int64[],
+                         Outcome = Symbol[])
+    for sub in 1:model.n_subs
+        trial_list = shuffle(collect(1:model.n_trials))
+        for i in 1:model.n_trials
+            probe = model.cues[trial_list[i],:]
+            probe = vcat(probe,zeros(length(probe)))
+            echo_int, resp, outcome = recall_trial(probe, model.cues, model.targets, threshold, trial_list[i])
+            push!(out_data, [sub, i, echo_int, trial_list[i], resp, outcome])
+        end
+    end
+    return out_data
+end
+
+"""
+
+"""
+function recall_trial(probe, cues, targets, threshold, answer)  
+    memory = hcat(cues, targets)  
+    ec_in = echo_intensity(probe, memory)
+    ec_con = round.(echo_content(probe, memory))
+    ec_target = ec_con[Int(length(ec_con)/2)+1:length(ec_con)]
+    target_acts = act_calc(ec_target, targets)
+    sum(target_acts .> threshold) > 0 ? recall = argmax(target_acts) : (recall = 0; outcome = :Omm)
+    recall == answer ? outcome = :Correct : outcome = :Comm
+    return ec_in, recall, outcome
+end
