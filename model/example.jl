@@ -41,21 +41,18 @@ function sample_prior()
 end
 
 # likelihood function 
-function loglike(data, ρ, κ)
-    sim_params = (n_subs = 1, n_features = 10, n_trials = 40, relatedness = ρ, decay = κ)
-    sim_model = MHG(;sim_params...)
+function loglike(data, ρ, κ; sim_params...)
+    sim_model = MHG(;sim_params..., relatedness = ρ, decay = κ)
     sim_dat = cued_recall(sim_model, 0.5)
-    corr = sum(sim_dat.Outcome .== :Correct)
-    comm = sum(sim_dat.Outcome .== :Comm)
-    omm = sum(sim_dat.Outcome .== :Omm)
-    ll = 0.0
-    ll += logpdf(Binomial(sim_model.n_trials, data[1]/sim_model.n_trials), corr)
-    ll += logpdf(Binomial(sim_model.n_trials, data[2]/sim_model.n_trials), comm)
-    ll += logpdf(Binomial(sim_model.n_trials, data[3]/sim_model.n_trials), omm)
-    echo_pararms = fit(Normal, data[4])
-    for i in 1:length(data[4])
-        ll += logpdf(echo_params,data[4][i])
-    end
+    outcomes = [:Correct,:Comm,:Omm]
+    n_outcomes = map(o -> sum(sim_dat.Outcome .== o), outcomes)
+
+    # echo_pararms = fit(Normal, data[4])
+    # for i in 1:length(data[4])
+    #     ll += logpdf(echo_params,data[4][i])
+    # end
+    θ = data.outcomes / sim_model.n_trials
+    ll = logpdf(Multinomial(sim_model.n_trials, θ), n_outcomes)
     return ll
 end
 
@@ -68,7 +65,10 @@ names = (:ρ,:κ)
 # parameter bounds
 bounds = ((0.0,1,0),(0.0,1.0))
 # define observed data
-data = [ex_corr,ex_comm,ex_omm,ex_echo]
+data = (;outcomes=[ex_corr,ex_comm,ex_omm],ex_echo)
+# parameters of simulation 
+sim_params = (n_subs = 1, n_features = 10, n_trials = 40)
+
 
 # model object
 model = DEModel(; 
@@ -76,7 +76,8 @@ model = DEModel(;
     prior_loglike, 
     loglike, 
     data,
-    names
+    names,
+    sim_params...
 )
 
 # DEMCMC sampler object
