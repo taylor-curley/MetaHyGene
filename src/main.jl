@@ -17,11 +17,13 @@ function cued_recall(model, threshold::Float64)
                          Target = Int64[],
                          RESP = Int64[],
                          Outcome = Symbol[])
+    # I don't think you need to differentiate between subjects and trials if iid 
     for sub in 1:model.n_subs
-        trial_list = shuffle(collect(1:model.n_trials))
+        trial_list = shuffle!([1:model.n_trials;])
         for i in 1:model.n_trials
             probe = model.cues[trial_list[i],:]
-            probe = vcat(probe,zeros(length(probe)))
+            # I recommend adding zeros to the probe upon initializing the model 
+            probe = vcat(probe, zeros(length(probe)))
             echo_int, resp, outcome = recall_trial(probe, model.cues, model.targets, threshold, trial_list[i])
             push!(out_data, [sub, i, echo_int, trial_list[i], resp, outcome])
         end

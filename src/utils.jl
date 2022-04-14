@@ -9,19 +9,19 @@ Creates vectors of integers [-1,0,1] with probability [0.4,0.2,0.4].
   - `relatedness::Float64`: Probability of replacing current integer with random choice from [-1,0,1].
 
 """
-sim_controller(n_features::Int64) = sample([-1,0,1],Weights([0.4,0.2,0.4]), n_features)
+sim_controller(n_features::Int64) = sample([-1,0,1], Weights([0.4,0.2,0.4]), n_features)
 
-sim_controller(n_features::Int64, n_trials::Int64) = sample([-1,0,1],Weights([0.4,0.2,0.4]), (n_trials,n_features))
+sim_controller(n_features::Int64, n_trials::Int64) = sample([-1,0,1], Weights([0.4,0.2,0.4]), (n_trials,n_features))
 
 function sim_controller(n_features::Int64, relatedness::Float64)
-    a = sample([-1,0,1],Weights([0.4,0.2,0.4]), n_features)
-    b = sim_replicator(a,relatedness)
+    a = sample([-1,0,1], Weights([0.4,0.2,0.4]), n_features)
+    b = sim_replicator(a, relatedness)
     return a,b
 end
 
 function sim_controller(n_features::Int64, n_trials::Int64, relatedness::Float64)
     a = sample([-1,0,1],Weights([0.4,0.2,0.4]), (n_trials,n_features))
-    b = sim_replicator(a,relatedness)
+    b = sim_replicator(a, relatedness)
     return a,b
 end
 
@@ -33,7 +33,7 @@ end
 function sim_replicator(probe::Vector{Int64}, relatedness::Float64)
     out_vec = copy(probe)
     for i in 1:length(probe)
-        if rand(Uniform()) > relatedness
+        if rand() > relatedness
             out_vec[i] = sample([-1,0,1],Weights([0.4,0.2,0.4]))
         end
     end
@@ -42,11 +42,9 @@ end
 
 function sim_replicator(probe::Matrix{Int64}, relatedness::Float64)
     out_vec = copy(probe)
-    for i in size(probe,1)
-        for j in size(probe,2)
-            if rand(Uniform()) > relatedness
-                out_vec[i,j] = sample([-1,0,1],Weights([0.4,0.2,0.4]))
-            end
+    for i in 1:length(probe)
+        if rand() > relatedness
+            out_vec[i] = sample([-1,0,1], Weights([0.4,0.2,0.4]))
         end
     end
     return out_vec
@@ -66,7 +64,7 @@ Replaces integers in probe array with 0 with probability `decay`.
 function trace_replicator(probe::Vector{Int64}, decay::Float64)
     out_vec = copy(probe)
     for i in 1:length(probe)
-        rand(Uniform()) < decay ? out_vec[i] = 0 : nothing
+        rand() < decay ? out_vec[i] = 0 : nothing
     end
     return out_vec
 end
@@ -74,9 +72,7 @@ end
 function trace_replicator(probe::Matrix{Int64}, decay::Float64)
     out_vec = copy(probe)
     for i in 1:size(probe,1)
-        for j in 1:size(probe,2)
-            rand(Uniform()) < decay ? out_vec[i,j] = 0 : nothing
-        end
+        rand() < decay ? out_vec[i] = 0 : nothing
     end
     return out_vec
 end
@@ -85,18 +81,19 @@ end
     sim_calc()
 
 """
-function sim_calc(probe::Vector, referent::Vector)
+function sim_calc(probe::Vector, referent)
     base = 0.0; count = length(probe)
     for i in 1:length(probe)
         (probe[i] == 0) && (referent[i] == 0) ? count -= 1 : base += (probe[i] * referent[i])
     end
-    return base/count
+    return base / count
 end
 
 function sim_calc(probe::Vector, referent::Matrix)
-    sims = []
-    for i in 1:size(referent,1)
-        push!(sims,sim_calc(probe,referent[i,:]))
+    n = size(referent, 1)
+    sims = fill(0.0, n)
+    for i in 1:n
+        sims[i] = sim_calc(probe, @view referent[i,:])
     end
     return sims
 end
@@ -106,9 +103,9 @@ end
     act_calc()
 
 """
-act_calc(probe::Vector, referent::Vector) = sim_calc(probe,referent)^3
+act_calc(probe::Vector, referent) = sim_calc(probe, referent)^3
 
-act_calc(probe::Vector, referent::Matrix) = sim_calc(probe,referent).^3
+act_calc(probe::Vector, referent::Matrix) = sim_calc(probe, referent).^3
 
 
 """
@@ -124,7 +121,7 @@ end
     echo_intensity()
 
 """
-echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe,referent))
+echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe, referent))
 
 
 """
@@ -134,7 +131,7 @@ echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe,referent))
 function echo_content(probe::Vector, referent::Matrix, normalize=true)
     out_vec = zeros(size(probe))
     for i in 1:size(referent,1)
-        out_vec .+= (act_calc(probe,referent[i,:]).*referent[i,:])
+        out_vec .+= (act_calc(probe, @view referent[i,:]).* @view referent[i,:])
     end
     normalize ? (return out_vec ./ maximum(out_vec)) : (return out_vec)
 end
