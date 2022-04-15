@@ -20,7 +20,7 @@ function sim_controller(n_features::Int64, relatedness::Float64)
 end
 
 function sim_controller(n_features::Int64, n_trials::Int64, relatedness::Float64)
-    a = sample([-1,0,1],Weights([0.4,0.2,0.4]), (n_trials,n_features))
+    a = sample([-1,0,1], Weights([0.4,0.2,0.4]), (n_trials,n_features))
     b = sim_replicator(a, relatedness)
     return a,b
 end
@@ -62,7 +62,7 @@ Replaces integers in probe array with 0 with probability `decay`.
 
 """
 function trace_replicator(probe::Vector{Int64}, decay::Float64)
-    out_vec = copy(probe)
+    out_vec = deepcopy(probe)
     for i in 1:length(probe)
         rand() < decay ? out_vec[i] = 0 : nothing
     end
@@ -70,8 +70,8 @@ function trace_replicator(probe::Vector{Int64}, decay::Float64)
 end
 
 function trace_replicator(probe::Matrix{Int64}, decay::Float64)
-    out_vec = copy(probe)
-    for i in 1:size(probe,1)
+    out_vec = deepcopy(probe)
+    for i in 1:length(probe)
         rand() < decay ? out_vec[i] = 0 : nothing
     end
     return out_vec
@@ -86,7 +86,7 @@ function sim_calc(probe::Vector, referent)
     for i in 1:length(probe)
         (probe[i] == 0) && (referent[i] == 0) ? count -= 1 : base += (probe[i] * referent[i])
     end
-    return base / count
+    return base/count
 end
 
 function sim_calc(probe::Vector, referent::Matrix)
