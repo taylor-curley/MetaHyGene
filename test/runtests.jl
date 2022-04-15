@@ -51,3 +51,16 @@ end
     est_p_neg_one = mean(x .== -1)
     @test (1 - p_zero) / 2 ≈ est_p_neg_one atol = 5e-2
 end
+
+
+@safetestset "trace_replicator" begin
+    using MetaHyGene
+    using Test, Random, Statistics 
+    Random.seed!(665)
+
+    probe = fill(1, 500, 500)
+    d = .4
+    x = trace_replicator(probe, d)
+
+    @test mean(x .== 0) ≈ d atol = 5e-2
+end

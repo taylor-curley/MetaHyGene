@@ -12,7 +12,7 @@ using DifferentialEvolutionMCMC
 ###############################################################################################
 #                                         Example Data                                        #
 ###############################################################################################
-ex_params = (n_subs = 1, n_features = 10, n_trials = 400, relatedness = 0.25, decay = 0.65)
+ex_params = (n_subs = 1, n_features = 10, n_trials = 40, relatedness = 0.25, decay = 0.65)
 ex_model = MHG(;ex_params...)
 ex_outcome = cued_recall(ex_model, 0.5)
 ex_corr = sum(ex_outcome.Outcome .== :Correct)
