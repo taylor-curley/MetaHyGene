@@ -8,10 +8,11 @@ using Pkg
 Pkg.activate("..")
 using MetaHyGene, Random, Distributions, Plots, StatsPlots, StatsBase, DataFrames
 using DifferentialEvolutionMCMC
+Random.seed!(8197)
 ###############################################################################################
 #                                         Example Data                                        #
 ###############################################################################################
-ex_params = (n_subs = 1, n_features = 10, n_trials = 40, relatedness = 0.25, decay = 0.65)
+ex_params = (n_subs = 10, n_features = 10, n_trials = 40, relatedness = 0.25, decay = 0.65)
 ex_model = MHG(;ex_params...)
 ex_outcome = cued_recall(ex_model, 0.5)
 ex_corr = sum(ex_outcome.Outcome .== :Correct)
@@ -25,17 +26,18 @@ data = (;n_trials=ex_params.n_trials, outcomes=[ex_corr,ex_comm,ex_omm],ex_echo)
 ###############################################################################################
 # ρ = relatedness; κ = decay
 
+# if the posterior is difficult to sample, try a probit transformation
 function prior_loglike(ρ, κ)
     LL = 0.0
-    LL += logpdf(truncated(Normal(0.5, 0.5), 0.0, Inf), ρ)
-    LL += logpdf(truncated(Normal(0.5, 0.5), 0.0, Inf), κ)
+    LL += logpdf(Beta(2, 8), ρ)
+    LL += logpdf(Beta(6, 4), κ)
     return LL
 end
 
 # function for initial values
 function sample_prior()
-    ρ = rand(truncated(Normal(0.5, 0.5), 0.0, Inf))
-    κ = rand(truncated(Normal(0.5, 0.5), 0.0, Inf))
+    ρ = rand(Beta(2, 8))
+    κ = rand(Beta(6, 4))
     return [ρ,κ]
 end
 
@@ -57,14 +59,12 @@ end
 ###############################################################################################
 #                                       Configure DEMCMC                                      #
 ###############################################################################################
-
 # parameter names
 names = (:ρ,:κ)
 # parameter bounds
 bounds = ((0.0,1,0),(0.0,1.0))
 # parameters of simulation 
 sim_params = (n_subs = 1, n_features = 10, n_trials = 500)
-
 
 # model object
 model = DEModel(; 
@@ -77,9 +77,9 @@ model = DEModel(;
 )
 
 # DEMCMC sampler object
-de = DE(;sample_prior, bounds, burnin = 2_000, Np = 6)
+de = DE(;sample_prior, bounds, burnin = 500, Np = 6)
 # number of interations per particle
-n_iter = 6_000
+n_iter = 1000
 
 chains = sample(model, de, MCMCThreads(), n_iter, progress=true)
 
