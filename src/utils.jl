@@ -30,17 +30,7 @@ end
 
 
 """
-function sim_replicator(probe::Vector{Int64}, relatedness::Float64)
-    out_vec = copy(probe)
-    for i in 1:length(probe)
-        if rand() > relatedness
-            out_vec[i] = sample([-1,0,1],Weights([0.4,0.2,0.4]))
-        end
-    end
-    return out_vec
-end
-
-function sim_replicator(probe::Matrix{Int64}, relatedness::Float64)
+function sim_replicator(probe, relatedness::Float64)
     out_vec = copy(probe)
     for i in 1:length(probe)
         if rand() > relatedness
@@ -61,16 +51,8 @@ Replaces integers in probe array with 0 with probability `decay`.
   - `decay::Float64`: Rate of decay between 0.0 and 1.0, with 1.0 being complete decay.
 
 """
-function trace_replicator(probe::Vector{Int64}, decay::Float64)
-    out_vec = deepcopy(probe)
-    for i in 1:length(probe)
-        rand() < decay ? out_vec[i] = 0 : nothing
-    end
-    return out_vec
-end
-
-function trace_replicator(probe::Matrix{Int64}, decay::Float64)
-    out_vec = deepcopy(probe)
+function trace_replicator(probe, decay::Float64)
+    out_vec = copy(probe)
     for i in 1:length(probe)
         rand() < decay ? out_vec[i] = 0 : nothing
     end
