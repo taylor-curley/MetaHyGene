@@ -63,7 +63,7 @@ function sim_calc(probe::Vector, referent::Vector)
     return base/count
 end
 
-function sim_calc(probe::Vector, referent::Matrix)
+function sim_calc(probe::Vector, referent)
     n = size(referent, 1)
     sims = fill(0.0, n)
     for i in 1:n
@@ -83,7 +83,7 @@ Hintzman's (1984) "activation" value. Vector similarity (`sim_calc`) to the thir
   - `referent`: Vector or matrix of integers to which the probe is compared.
 
 """
-act_calc(probe::Vector, referent::Vector) = sim_calc(probe, referent)^3
+act_calc(probe::Vector, referent) = sim_calc(probe, referent)^3
 
 act_calc(probe::Vector, referent::Matrix) = sim_calc(probe, referent).^3
 
