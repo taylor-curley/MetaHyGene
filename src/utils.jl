@@ -25,21 +25,6 @@ function sim_controller(n_features::Int64, n_trials::Int64, relatedness::Float64
     return a,b
 end
 
-"""
-    sim_replicator()
-
-
-"""
-function sim_replicator(probe, relatedness::Float64)
-    out_vec = copy(probe)
-    for i in 1:length(probe)
-        if rand() > relatedness
-            out_vec[i] = sample([-1,0,1], Weights([0.4,0.2,0.4]))
-        end
-    end
-    return out_vec
-end
-
 
 """
     trace_replicator()
@@ -62,8 +47,15 @@ end
 """
     sim_calc()
 
+Calculates the similarity between two probes, or against a probe and a matrix or item vectors.
+Basically the dot product divided by the number of features, excluding "shared" features.
+
+# Parameters
+  - `probe`: Vector of integers representing a single item.
+  - `referent`: Vector or matrix of integers to which the probe is compared.
+
 """
-function sim_calc(probe::Vector, referent)
+function sim_calc(probe::Vector, referent::Vector)
     base = 0.0; count = length(probe)
     for i in 1:length(probe)
         (probe[i] == 0) && (referent[i] == 0) ? count -= 1 : base += (probe[i] * referent[i])
@@ -84,8 +76,14 @@ end
 """
     act_calc()
 
+Hintzman's (1984) "activation" value. Vector similarity (`sim_calc`) to the third power.
+
+# Parameters
+  - `probe`: Vector of integers representing a single item.
+  - `referent`: Vector or matrix of integers to which the probe is compared.
+
 """
-act_calc(probe::Vector, referent) = sim_calc(probe, referent)^3
+act_calc(probe::Vector, referent::Vector) = sim_calc(probe, referent)^3
 
 act_calc(probe::Vector, referent::Matrix) = sim_calc(probe, referent).^3
 
@@ -102,12 +100,28 @@ end
 """
     echo_intensity()
 
+Hintzman's (1984) method of summation of activation values.
+
+# Parameters
+  - `probe`: Vector of integers representing a single item.
+  - `referent`: Vector or matrix of integers to which the probe is compared.
+
 """
 echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe, referent))
 
 
 """
     echo_content()
+
+Hintzman's (1984) echo content method. Sums the product of the probe and memory vectors, 
+weighted by their respective activations. The resulting vector should resemble the target
+item (if it is represented in memory). The out vector is normalized to the max value for
+easier comparison against existing vectors.
+
+# Parameters
+  - `probe`: Vector of integers representing a single item.
+  - `referent`: Vector or matrix of integers to which the probe is compared.
+  - `normalize`: Should the resulting vector be normalized by the max value?
 
 """
 function echo_content(probe::Vector, referent::Matrix, normalize=true)
