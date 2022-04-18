@@ -55,7 +55,7 @@ Basically the dot product divided by the number of features, excluding "shared" 
   - `referent`: Vector or matrix of integers to which the probe is compared.
 
 """
-function sim_calc(probe::Vector, referent::Vector)
+function sim_calc(probe::Vector, referent)
     base = 0.0; count = length(probe)
     for i in 1:length(probe)
         (probe[i] == 0) && (referent[i] == 0) ? count -= 1 : base += (probe[i] * referent[i])
@@ -63,7 +63,7 @@ function sim_calc(probe::Vector, referent::Vector)
     return base/count
 end
 
-function sim_calc(probe::Vector, referent)
+function sim_calc(probe::Vector, referent::Matrix)
     n = size(referent, 1)
     sims = fill(0.0, n)
     for i in 1:n
@@ -87,15 +87,6 @@ act_calc(probe::Vector, referent) = sim_calc(probe, referent)^3
 
 act_calc(probe::Vector, referent::Matrix) = sim_calc(probe, referent).^3
 
-
-"""
-"""
-function recall_summary(data)
-    corr = sum(data .== :Correct)
-    comm = sum(data .== :Comm)
-    omm = sum(data .== :Omm)
-    return [corr, comm, omm]
-end
 
 """
     echo_intensity()
