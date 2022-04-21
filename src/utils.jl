@@ -15,13 +15,13 @@ sim_controller(n_features::Int64, n_trials::Int64) = sample([-1,0,1], Weights([0
 
 function sim_controller(n_features::Int64, relatedness::Float64)
     a = sample([-1,0,1], Weights([0.4,0.2,0.4]), n_features)
-    b = sim_replicator(a, relatedness)
+    b = trace_replicator(a, relatedness)
     return a,b
 end
 
 function sim_controller(n_features::Int64, n_trials::Int64, relatedness::Float64)
     a = sample([-1,0,1], Weights([0.4,0.2,0.4]), (n_trials,n_features))
-    b = sim_replicator(a, relatedness)
+    b = trace_replicator(a, relatedness)
     return a,b
 end
 
@@ -91,15 +91,25 @@ act_calc(probe::Vector, referent::Matrix) = sim_calc(probe, referent).^3
 """
     echo_intensity()
 
-Hintzman's (1984) method of summation of activation values.
+Hintzman's (1984) method of summation of activation values. Conditional echo
+intensity only sums values that are above a threshold. 
 
 # Parameters
   - `probe`: Vector of integers representing a single item.
   - `referent`: Vector or matrix of integers to which the probe is compared.
+  - `conditional`: Should conditional echo intensity be computed?
+  - `threshold`: Specifies minimum activation values that will be summed during conditional echo intensity
 
 """
-echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe, referent))
-
+function echo_intensity(probe::Vector, referent::Matrix, conditional::Bool=false, threshold::Float64=0.0)
+    if conditional
+        act_vals = act_calc(probe,referent)
+        e_i = sum(act_vals[act_vals.>threshold])
+    else
+        e_i = sum(act_calc(probe, referent))
+    end
+    return e_i
+end
 
 """
     echo_content()
@@ -107,7 +117,7 @@ echo_intensity(probe::Vector, referent::Matrix) = sum(act_calc(probe, referent))
 Hintzman's (1984) echo content method. Sums the product of the probe and memory vectors, 
 weighted by their respective activations. The resulting vector should resemble the target
 item (if it is represented in memory). The out vector is normalized to the max value for
-easier comparison against existing vectors.
+easier comparison against existing vectors and rounded to the nearest integer.
 
 # Parameters
   - `probe`: Vector of integers representing a single item.
@@ -120,7 +130,13 @@ function echo_content(probe::Vector, referent::Matrix, normalize=true)
     for i in 1:size(referent,1)
         out_vec .+= (act_calc(probe, @view referent[i,:]).* @view referent[i,:])
     end
-    normalize ? (return out_vec ./ maximum(out_vec)) : (return out_vec)
+    if normalize
+        out_vec ./= maximum(out_vec)
+        out_vec = round.(out_vec)
+    else
+        nothing
+    end
+    return out_vec
 end
 
 """
