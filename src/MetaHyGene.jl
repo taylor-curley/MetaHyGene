@@ -2,7 +2,7 @@ module MetaHyGene
 
     using Distributions, DataFrames, StatsBase, ConcreteStructs, Random
 
-    export recognition
+    export recognition, cued_recall, cued_recall_trial
     include("main.jl")
 
     export sim_controller, trace_replicator, sim_calc, act_calc, echo_intensity, echo_content, block_header, line_header
